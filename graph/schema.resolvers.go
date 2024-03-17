@@ -17,11 +17,24 @@ import (
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
 	randNumber, _ := rand.Int(rand.Reader, big.NewInt(100))
 	todo := &model.Todo{
-		Text: input.Text,
-		ID:   fmt.Sprintf("T%d", randNumber),
+		Text:   input.Text,
+		ID:     fmt.Sprintf("T%d", randNumber),
 		UserID: input.UserID,
 	}
 	r.todos = append(r.todos, todo)
+	return todo, nil
+}
+
+// DeleteTodo is the resolver for the deleteTodo field.
+func (r *mutationResolver) DeleteTodo(ctx context.Context, input model.DeleteTodo) (*model.Todo, error) {
+	var index int
+	for i, todo := range r.todos {
+		if todo.ID == input.TodoID {
+			index = i
+		}
+	}
+	todo := r.todos[index]
+	r.todos = append(r.todos[:index], r.todos[index+1:]...)
 	return todo, nil
 }
 
@@ -30,9 +43,17 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 	return r.todos, nil
 }
 
-// User is the resolver for the user field.
-func (r *todoResolver) User(ctx context.Context, obj *model.Todo) (*model.User, error) {
-	return &model.User{ID: obj.UserID, Name: "user " + obj.UserID}, nil
+// Todo is the resolver for the todo field.
+func (r *queryResolver) Todo(ctx context.Context, input model.GetTodo) (*model.Todo, error) {
+	id := input.UserID
+	var index int
+	for i, todo := range r.todos {
+		if todo.UserID == id {
+			index = i
+		}
+	}
+	todo := r.todos[index]
+	return todo, nil
 }
 
 // Mutation returns MutationResolver implementation.
@@ -41,9 +62,5 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
-// Todo returns TodoResolver implementation.
-func (r *Resolver) Todo() TodoResolver { return &todoResolver{r} }
-
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type todoResolver struct{ *Resolver }

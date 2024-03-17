@@ -6,16 +6,18 @@ type Todo {
   id: ID!
   text: String!
   done: Boolean!
-  user: User!
+  userId: ID!
 }
 
 type User {
   id: ID!
+  email: String!
   name: String!
 }
 
 type Query {
   todos: [Todo!]!
+  todo(input: GetTodo!): Todo!
 }
 
 input NewTodo {
@@ -23,6 +25,15 @@ input NewTodo {
   userId: String!
 }
 
+input DeleteTodo {
+  todoId: ID!
+}
+
+input GetTodo {
+  userId: ID!
+}
+
 type Mutation {
   createTodo(input: NewTodo!): Todo!
+  deleteTodo(input: DeleteTodo!): Todo!
 }
